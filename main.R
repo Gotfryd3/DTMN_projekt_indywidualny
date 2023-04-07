@@ -65,52 +65,52 @@ hist(rawData$Weight_Kg,  main="Histogram of car weights", xlab="Weight [Kg]", yl
 rawData2 <- read.table("airpollution.txt", sep='\t', header=TRUE)
 
 summary(rawData2)
-correlationMatrix <- cor(rawData2)
-linearModel1 <- lm(Mortality ~ NOx, data = rawData2)
-summary(linearModel1)
+correlationMatrix2 <- cor(rawData2)
+linearModel2A <- lm(Mortality ~ NOx, data = rawData2)
+summary(linearModel2A)
 
 rawData2["log(NOx)"] <- log(rawData2$NOx)
-linearModel2 <- lm(Mortality ~ log(NOx), data = rawData2)
-summary(linearModel2)
+linearModel2B <- lm(Mortality ~ log(NOx), data = rawData2)
+summary(linearModel2B)
 
-Q <- quantile(linearModel2$residuals, probs=c(0.25, 0.75), na.rm = FALSE)
-iqr <- IQR(linearModel2$residuals)
-cleanedData <- subset(rawData2, linearModel2$residuals>(Q[1] - 1.5*iqr) & linearModel2$residuals<(Q[2] + 1.5*iqr))
-linearModel3 <- lm(Mortality ~ log(NOx), data = cleanedData)
-summary(linearModel3)
+Q <- quantile(linearModel2B$residuals, probs=c(0.25, 0.75), na.rm = FALSE)
+iqr <- IQR(linearModel2B$residuals)
+cleanedData <- subset(rawData2, linearModel2B$residuals>(Q[1] - 1.5*iqr) & linearModel2B$residuals<(Q[2] + 1.5*iqr))
+linearModel2C <- lm(Mortality ~ log(NOx), data = cleanedData)
+summary(linearModel2C)
 
 #####
 ##  Zadanie 3
 #
 rawData3 <- read.table("savings.txt", sep=';', header=TRUE)
 summary(rawData3)
-corelationMatrix2 <- cor(rawData3[-1])
-linearModel4 <- lm(Savings ~ dpi + ddpi + Pop15 + Pop75, data=rawData3)
+corelationMatrix3 <- cor(rawData3[-1])
+linearModel3 <- lm(Savings ~ dpi + ddpi + Pop15 + Pop75, data=rawData3)
 
-maxValResidual <- max(linearModel4$residuals)
-minValResidual <- min(linearModel4$residuals)
-countryMaxValResidual <- rawData3$Country[which(linearModel4$residuals == maxValResidual)[1]]
-countryMinValResidual <- rawData3$Country[which(linearModel4$residuals == minValResidual)[1]]
-plot(linearModel4$residuals)
+maxValResidual <- max(linearModel3$residuals)
+minValResidual <- min(linearModel3$residuals)
+countryMaxValResidual <- rawData3$Country[which(linearModel3$residuals == maxValResidual)[1]]
+countryMinValResidual <- rawData3$Country[which(linearModel3$residuals == minValResidual)[1]]
+plot(linearModel3$residuals)
 
-leverageDataFrame <- as.data.frame(hatvalues(linearModel4))
+leverageDataFrame <- as.data.frame(hatvalues(linearModel3))
 plot(leverageDataFrame)
 
-studentizedResiduals <- studres(linearModel4)
+studentizedResiduals <- studres(linearModel3)
 plot(rawData3$Savings, studentizedResiduals)
 
-dffitsLinearModel4 <- dffits(linearModel4)
-dfbetasLinearModel4 <- dfbetas(linearModel4)
-cookeDistanceLinearModel4 <- cooks.distance(linearModel4)
-influenceLinearModel4 <- influence.measures(linearModel4)
+dffitsLinearModel3 <- dffits(linearModel3)
+dfbetasLinearModel3 <- dfbetas(linearModel3)
+cookeDistanceLinearModel3 <- cooks.distance(linearModel3)
+influenceLinearModel4 <- influence.measures(linearModel3)
 summary(influenceLinearModel4)
 
-maxValCookDistance <- max(cookeDistanceLinearModel4)
+maxValCookDistance <- max(cookeDistanceLinearModel3)
 clearedRawData3 <- subset(rawData3, cookeDistanceLinearModel4 < maxValCookDistance)
-modifiedLinearModel4 <- lm(Savings ~ dpi + ddpi + Pop15 + Pop75, data=clearedRawData3)
-summary(modifiedLinearModel4)
+modifiedLinearModel3 <- lm(Savings ~ dpi + ddpi + Pop15 + Pop75, data=clearedRawData3)
+summary(modifiedLinearModel3)
 
-differenceInCoeficients <- (linearModel4$coefficients - modifiedLinearModel4$coefficients) / linearModel4$coefficients
+differenceInCoeficients <- (linearModel3$coefficients - modifiedLinearModel3$coefficients) / linearModel3$coefficients
 barplot(differenceInCoeficients, main="Difference in model coeficients", xlab="Coeficient name", ylab="Relative difference [%]", horiz=FALSE, names.arg=c("Beta0", "Pop15", "Pop75", "dpi", "ddpi"))
 
 #####
@@ -118,14 +118,14 @@ barplot(differenceInCoeficients, main="Difference in model coeficients", xlab="C
 #
 rawData4 <- read.table("realest.txt", sep=';', header=TRUE)
 
-linearModel5 <- lm(Price ~ Bedroom + Space + Room + Lot + Tax + Bathroom + Garage + Condition, rawData4)
+linearModel4 <- lm(Price ~ Bedroom + Space + Room + Lot + Tax + Bathroom + Garage + Condition, rawData4)
 modifiedData4 <- rawData4
 modifiedData4["Bedroom"] <- modifiedData4["Bedroom"] + 1
-influenceOnPrice <- (fitted(linearModel5) - predict(linearModel5, modifiedData4[-1])) / fitted(linearModel5)
-simplifiedLinearModel5 <- lm(Price ~ Bedroom, rawData4)
-influenceOnPrice <- (fitted(simplifiedLinearModel5) - predict(simplifiedLinearModel5, modifiedData4[-1])) / fitted(simplifiedLinearModel5)
+influenceOnPrice <- (fitted(linearModel4) - predict(linearModel4, modifiedData4[-1])) / fitted(linearModel4)
+simplifiedLinearModel4 <- lm(Price ~ Bedroom, rawData4)
+influenceOnPrice <- (fitted(simplifiedLinearModel4) - predict(simplifiedLinearModel4, modifiedData4[-1])) / fitted(simplifiedLinearModel4)
 
-price <- predict(linearModel5, data.frame(Bedroom=3, Space=1500, Room=8, Lot=40, Bathroom=5, Garage=1, Tax=1000, Condition=0), interval="confidence", level=0.95)
+price <- predict(linearModel4, data.frame(Bedroom=3, Space=1500, Room=8, Lot=40, Bathroom=5, Garage=1, Tax=1000, Condition=0), interval="confidence", level=0.95)
 print(price)
 
 #####
@@ -133,6 +133,28 @@ print(price)
 #
 rawData5 <- read.table("gala_data.txt", header=TRUE)
 
+linearModel5A <- lm(Species ~ Endemics + Area + Elevation + Nearest + Scruz + Adjacent, rawData5)
+plot(linearModel5A)
+qqnorm(linearModel5A$res)
+qqline(linearModel5A$res)
+cutoff <- 4/((nrow(linearModel5A)-length(linearModel5A$coefficients)-2))
+plot(linearModel5A, which=4, cook.levels=cutoff)
+influencePlot(linearModel5A, main="Influence Plot", sub="Circle size is proportial to Cook's Distance")
 
+modifiedData5A <- rawData5
+modifiedData5A["sSpecies"] <- sqrt(rawData5$Species)
+modifiedData5A <- modifiedData5A[-2]
+linearModel5B <- lm(sSpecies ~ Endemics + Area + Elevation + Nearest + Scruz + Adjacent, modifiedData5A)
+pVal <- summary(linearModel5B)$coefficients[,4]
+modifiedData5B <- modifiedData5A[-which(max(pVal) == pVal)]
+linearModel5C <- lm(sSpecies ~ Endemics + Area + Nearest + Scruz + Adjacent, modifiedData5B)
+summary(linearModel5A)$r.squared
+summary(linearModel5C)$r.squared
+summary(linearModel5A)$adj.r.squared
+summary(linearModel5C)$adj.r.squared
 
-
+#####
+##  Zadanie 6
+#
+rawData6 <- read.table("iris.txt", sep=",", header=TRUE)
+rawData6$class <- as.factor(rawData6$class)
