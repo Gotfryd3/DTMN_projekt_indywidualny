@@ -8,6 +8,8 @@ library(plotrix)
 library(car)
 library(ggpubr)
 library(cowplot)
+library(caTools)
+library(tree)
 
 rawData <- data.frame(Cars93)
 
@@ -158,3 +160,35 @@ summary(linearModel5C)$adj.r.squared
 #
 rawData6 <- read.table("iris.txt", sep=",", header=TRUE)
 rawData6$class <- as.factor(rawData6$class)
+
+class1Data <- data.frame(filter(rawData6, class == "Iris-setosa"))
+class2Data <- data.frame(filter(rawData6, class == "Iris-versicolor"))
+class3Data <- data.frame(filter(rawData6, class == "Iris-virginica"))
+
+split1 = sample.split(class1Data, SplitRatio = 0.7)
+trainData1 = subset(class1Data, split1 == TRUE)
+testData1  = subset(class1Data, split1 == FALSE)
+split2 = sample.split(class2Data, SplitRatio = 0.7)
+trainData2 = subset(class2Data, split2 == TRUE)
+testData2  = subset(class2Data, split2 == FALSE)
+split3 = sample.split(class3Data, SplitRatio = 0.7)
+trainData3 = subset(class3Data, split3 == TRUE)
+testData3  = subset(class3Data, split3 == FALSE)
+
+trainData <- rbind(trainData1, trainData2, trainData3)
+testData <- rbind(testData1, testData2, testData3)
+
+model <- tree(class ~ sepal.length + sepal.width + petal.length + petal.width, trainData, na.action=na.pass, control=tree.control(90), split=c("gini"))
+tablica <- table(predict(model, testData, type="class"), testData$class)
+badClassification <- sum(tablica)-sum(diag(tablica))
+print(paste(badClassification, "/", count(testData), "have been classified badly!"))
+# X11()
+plot(model)
+text(model,use.n=TRUE,all=FALSE,cex=0.7)
+print(tablica)
+
+#####
+##  Zadanie 7
+#
+rawData7 <- read.table("iris.txt", sep=",", header=TRUE)
+rawData7$class <- as.factor(rawData7$class)
