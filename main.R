@@ -10,6 +10,9 @@ library(ggpubr)
 library(cowplot)
 library(caTools)
 library(tree)
+library(factoextra)
+library(class)
+library(gmodels)
 
 rawData <- data.frame(Cars93)
 
@@ -95,11 +98,14 @@ countryMaxValResidual <- rawData3$Country[which(linearModel3$residuals == maxVal
 countryMinValResidual <- rawData3$Country[which(linearModel3$residuals == minValResidual)[1]]
 plot(linearModel3$residuals)
 
-leverageDataFrame <- as.data.frame(hatvalues(linearModel3))
-plot(leverageDataFrame)
-
+leverageDataFrame <- hatvalues(linearModel3)
+data = data.frame(rawData3$Country, leverageDataFrame)
+colnames(data) <- c("Country", "Leverage")
+ggplot(data, aes(x=Country, y=Leverage)) + geom_bar(stat = "identity") + coord_flip() + ggtitle("Leverage - linear model")
 studentizedResiduals <- studres(linearModel3)
-plot(rawData3$Savings, studentizedResiduals)
+data = data.frame(rawData3$Country, studentizedResiduals)
+colnames(data) <- c("Country", "S.Residuals")
+ggplot(data, aes(x=Country, y=S.Residuals)) + geom_bar(stat = "identity") + coord_flip() + ggtitle("S.Residuals - linear model")
 
 dffitsLinearModel3 <- dffits(linearModel3)
 dfbetasLinearModel3 <- dfbetas(linearModel3)
@@ -191,4 +197,29 @@ print(tablica)
 ##  Zadanie 7
 #
 rawData7 <- read.table("iris.txt", sep=",", header=TRUE)
-rawData7$class <- as.factor(rawData7$class)
+preparedData <- as.data.frame(scale(rawData7[1:4]))
+preparedData["class"] <- rawData7$class
+
+write.table(preparedData, "iris_norm.txt", sep=";", row.names=FALSE, quote=FALSE)
+
+class1Data <- data.frame(filter(preparedData, class == "Iris-setosa"))
+class2Data <- data.frame(filter(preparedData, class == "Iris-versicolor"))
+class3Data <- data.frame(filter(preparedData, class == "Iris-virginica"))
+
+split1 = sample.split(class1Data, SplitRatio = 0.7)
+trainData1 = subset(class1Data, split1 == TRUE)
+testData1  = subset(class1Data, split1 == FALSE)
+split2 = sample.split(class2Data, SplitRatio = 0.7)
+trainData2 = subset(class2Data, split2 == TRUE)
+testData2  = subset(class2Data, split2 == FALSE)
+split3 = sample.split(class3Data, SplitRatio = 0.7)
+trainData3 = subset(class3Data, split3 == TRUE)
+testData3  = subset(class3Data, split3 == FALSE)
+
+trainData <- rbind(trainData1, trainData2, trainData3)
+testData <- rbind(testData1, testData2, testData3)
+
+klaster3 <- knn(train=trainData[1:4], test=testData[1:4], cl=trainData[,5], k=3)
+klaster30 <- knn(train=trainData[1:4], test=testData[1:4], cl=trainData[,5], k=30)
+CrossTable(x=testData[,5], y=klaster3)
+CrossTable(x=testData[,5], y=klaster30)
